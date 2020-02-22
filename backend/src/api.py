@@ -6,6 +6,8 @@ from flask_cors import CORS
 
 from .database.models import db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth
+from sqlalchemy.exc import DatabaseError
+
 
 app = Flask(__name__)
 setup_db(app)
@@ -19,14 +21,16 @@ CORS(app)
 # db_drop_and_create_all()
 
 ## ROUTES
-'''
-@TODO implement endpoint
-    GET /drinks
-        it should be a public endpoint
-        it should contain only the drink.short() data representation
-    returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
-        or appropriate status code indicating reason for failure
-'''
+@app.route('/drinks')
+def get_drinks():
+    drinks = Drink.query.all()
+    drinks_list = [drink.short() for drink in drinks]
+    if len(drinks) < 1:
+        abort(404)
+    return jsonify({
+        'success': True,
+        'drinks': drinks_list
+    })
 
 
 '''
@@ -48,7 +52,29 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks', methods=['POST'])
+def create_drink():
+    body = request.get_json()
+    validated_body = {}
+    required_fields = ['title', 'recipe']
+    for field in required_fields:
+        resp = body.get(field, None)
+        if resp is None:
+            abort(400)
+        validated_body[field] = resp
 
+    try:
+        new_drink = Drink()
+        new_drink.title=validated_body['title']
+        new_drink.recipe=json.dumps(validated_body['recipe'])
+        new_drink.insert()
+        return jsonify({
+            'success': True,
+            'created': new_drink.id,
+        }), 201
+    except DatabaseError:
+        abort(422)
+    
 
 '''
 @TODO implement endpoint
@@ -108,6 +134,3 @@ def unprocessable(error):
 @TODO implement error handler for AuthError
     error handler should conform to general task above 
 '''
-
-if __name__ == '__main__':
-    app.run(debug=True)
