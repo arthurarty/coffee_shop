@@ -9,18 +9,19 @@ AUTH0_DOMAIN = 'arty-coffee-shop.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'coffee_shop'
 
-## AuthError Exception
-'''
-AuthError Exception
-A standardized way to communicate auth failure modes
-'''
+# AuthError Exception
+
+
 class AuthError(Exception):
+    '''AuthError Exception
+    A standardized way to communicate auth failure modes
+    '''
     def __init__(self, error, status_code):
         self.error = error
         self.status_code = status_code
 
 
-## Auth Header
+# Auth Header
 
 
 def get_token_auth_header():
@@ -62,7 +63,7 @@ def check_permissions(permission, payload):
 
     if permission not in payload['permissions']:
         abort(403)
-    
+
     return True
 
 
@@ -107,7 +108,9 @@ def verify_decode_jwt(token):
         except jwt.JWTClaimsError:
             raise AuthError({
                 'code': 'invalid_claims',
-                'description': 'Incorrect claims. Please, check the audience and issuer.'
+                'description': '''Incorrect claims.
+                Please,check the audience and issuer.
+                '''
             }, 401)
         except Exception:
             raise AuthError({
@@ -129,7 +132,7 @@ def requires_auth(permission=''):
                 payload = verify_decode_jwt(token)
             except:
                 abort(401)
-            
+
             check_permissions(permission, payload)
             return f(*args, **kwargs)
 

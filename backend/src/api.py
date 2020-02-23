@@ -20,7 +20,7 @@ CORS(app)
 '''
 # db_drop_and_create_all()
 
-## ROUTES
+# ROUTES
 @app.route('/drinks')
 def get_drinks():
     drinks = Drink.query.all()
@@ -60,8 +60,8 @@ def create_drink():
 
     try:
         new_drink = Drink()
-        new_drink.title=validated_body['title']
-        new_drink.recipe=json.dumps(validated_body['recipe'])
+        new_drink.title = validated_body['title']
+        new_drink.recipe = json.dumps(validated_body['recipe'])
         new_drink.insert()
         return jsonify({
             'success': True,
@@ -69,7 +69,7 @@ def create_drink():
         }), 200
     except DatabaseError:
         abort(422)
-    
+
 
 @app.route('/drinks/<int:drink_id>', methods=['PATCH'])
 @requires_auth('patch:drinks')
@@ -88,9 +88,9 @@ def edit_drink(drink_id):
         validated_body[field] = resp
 
     if validated_body['title'] is not None:
-        drink.title=validated_body['title']
+        drink.title = validated_body['title']
     if validated_body['recipe'] is not None:
-        drink.recipe=json.dumps(validated_body['recipe'])
+        drink.recipe = json.dumps(validated_body['recipe'])
 
     drink_dict = drink.long()
     drink_array = [value for value in drink_dict.values()]
@@ -101,7 +101,7 @@ def edit_drink(drink_id):
             'drinks': drink_array,
         }), 200
     except DatabaseError:
-        abort(422) 
+        abort(422)
 
 
 @app.route('/drinks/<int:drink_id>', methods=['DELETE'])
@@ -121,14 +121,14 @@ def delete_drink(drink_id):
     })
 
 
-## Error Handling
+# Error Handling
 '''
 Example error handling for unprocessable entity
 '''
 @app.errorhandler(422)
 def unprocessable(error):
     return jsonify({
-                    "success": False, 
+                    "success": False,
                     "error": 422,
                     "message": "unprocessable"
                     }), 422
