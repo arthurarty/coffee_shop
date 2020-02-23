@@ -48,7 +48,10 @@ class Drink(db.Model):
     '''
     def short(self):
         recipe = json.loads(self.recipe)
-        short_recipe = [{'color': recipe['color'], 'parts': recipe['parts']}]
+        if type(recipe) is list:
+            short_recipe = [{'color': r['color'], 'parts': r['parts']} for r in recipe]
+        else:
+            short_recipe = [{'color': recipe['color'], 'parts': recipe['parts']}]
         return {
             'id': self.id,
             'title': self.title,
