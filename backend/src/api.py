@@ -66,29 +66,46 @@ def create_drink():
         return jsonify({
             'success': True,
             'drinks': new_drink.long(),
-        }), 201
+        }), 200
     except DatabaseError:
         abort(422)
     
 
-'''
-@TODO implement endpoint
-    PATCH /drinks/<id>
-        where <id> is the existing model id
-        it should respond with a 404 error if <id> is not found
-        it should update the corresponding row for <id>
-        it should require the 'patch:drinks' permission
-        it should contain the drink.long() data representation
-    returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
-        or appropriate status code indicating reason for failure
-'''
+@app.route('/drinks/<int:drink_id>', methods=['PATCH'])
+@requires_auth('patch:drinks')
+def edit_drink(drink_id):
+    body = request.get_json()
+    drink = Drink.query.filter(
+        Drink.id == drink_id).one_or_none()
+
+    validated_body = {}
+    fields = ['title', 'recipe']
+    for field in fields:
+        resp = body.get(field, None)
+        validated_body[field] = resp
+
+    if validated_body['title'] is not None:
+        drink.title=validated_body['title']
+    if validated_body['recipe'] is not None:
+        drink.recipe=json.dumps(validated_body['recipe'])
+
+    drink_dict = drink.long()
+    drink_array = [value for value in drink_dict.values()]
+    try:
+        drink.update()
+        return jsonify({
+            'success': True,
+            'drinks': drink_array,
+        }), 200
+    except DatabaseError:
+        abort(422) 
 
 
 @app.route('/drinks/<int:drink_id>', methods=['DELETE'])
 @requires_auth('delete:drinks')
 def delete_drink(drink_id):
     drink = Drink.query.filter(
-    Drink.id == drink_id).one_or_none()
+        Drink.id == drink_id).one_or_none()
 
     if drink is None:
         abort(404)
